@@ -109,12 +109,7 @@ export function AdminLogin({ onLogin }: AdminLoginProps) {
             </button>
 
             {/* نفس صندوق الحساب التجريبي كما هو (حتى لو مش موجود في الباك) */}
-            <div className="bg-blue-50 rounded-xl p-4 border border-blue-100">
-              <p className="text-sm text-blue-900 font-medium mb-2">حساب تجريبي:</p>
-              <div className="space-y-1 text-xs text-blue-700">
-                <p>• admin@company.com / admin123</p>
-              </div>
-            </div>
+
           </form>
         </div>
       </div>

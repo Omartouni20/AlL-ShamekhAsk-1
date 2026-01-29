@@ -3,25 +3,31 @@ const Inquiry = require("../models/Inquiry");
 
 exports.createEmployee = async (req, res, next) => {
   try {
-    const { name, username, password } = req.body || {};
-    if (!name || !username || !password) return res.status(400).json({ message: "Missing fields" });
+    const { name, email, password } = req.body || {};
+    
+    if (!name || !email || !password) return res.status(400).json({ message: "Missing fields" });
 
-    const exists = await User.findOne({ username: String(username).toLowerCase() });
-    if (exists) return res.status(409).json({ message: "Username already exists" });
+    // Ensure that the email is not already taken
+    const exists = await User.findOne({ email: email.toLowerCase() });
+    if (exists) return res.status(409).json({ message: "Email already exists" });
 
+    // Hash password before saving
     const passwordHash = await User.hashPassword(password);
     const user = await User.create({
       name,
-      username: String(username).toLowerCase(),
+      email: email.toLowerCase(),
       passwordHash,
-      role: "EMPLOYEE"
+      role: "employee",
+      isActive: true  // تحديد القيمة بشكل صريح عند الإنشاء
     });
 
-    res.status(201).json({ id: user._id, name: user.name, username: user.username, role: user.role });
+    res.status(201).json({ id: user._id, name: user.name, email: user.email, role: user.role });
   } catch (e) {
     next(e);
   }
 };
+
+
 
 exports.updateEmployee = async (req, res, next) => {
   try {
@@ -29,10 +35,10 @@ exports.updateEmployee = async (req, res, next) => {
 
     const user = await User.findById(req.params.id);
     if (!user) return res.status(404).json({ message: "Not found" });
-    if (user.role !== "EMPLOYEE") return res.status(400).json({ message: "Not an employee" });
+    if (user.role !== "employee") return res.status(400).json({ message: "Not an employee" });
 
     if (typeof name === "string") user.name = name.trim();
-    if (typeof isActive === "boolean") user.isActive = isActive;
+    if (typeof isActive === "boolean") user.isActive = isActive;  // تأكد من أنه يتم تحديث isActive فقط إذا كانت القيمة صحيحة
     if (typeof password === "string" && password.trim().length >= 6) {
       user.passwordHash = await User.hashPassword(password.trim());
     }
@@ -43,6 +49,8 @@ exports.updateEmployee = async (req, res, next) => {
     next(e);
   }
 };
+
+
 
 exports.dashboard = async (_req, res, next) => {
   try {

@@ -165,9 +165,18 @@ export async function adminListInquiries(params?: {
   return data; // {items,total,page,limit}
 }
 
-export async function adminCreateEmployee(payload: { name: string; username: string; password: string }) {
+export async function adminCreateEmployee(payload: { name: string; email: string; password: string; role?: string }) {
   const token = getToken();
-  console.log("Creating admin employee with payload:", payload); // لتتبع البيانات أثناء إنشاء الموظف الإداري
+  
+  // التأكد من تحويل role إلى حروف صغيرة
+  if (payload.role) {
+    payload.role = payload.role.toLowerCase();  // تحويل role إلى حروف صغيرة
+  } else {
+    payload.role = 'employee';  // القيمة الافتراضية إذا لم يتم تحديد role
+  }
+
+  console.log("Creating admin employee with payload:", payload);
+
   const res = await fetch(`${API_BASE}/api/admin/employees`, {
     method: "POST",
     headers: {
@@ -179,13 +188,16 @@ export async function adminCreateEmployee(payload: { name: string; username: str
 
   if (!res.ok) {
     const errorMessage = await readError(res);
-    console.error("Error creating admin employee:", errorMessage); // لتتبع الأخطاء أثناء إنشاء الموظف الإداري
+    console.error("Error creating admin employee:", errorMessage);
     throw new Error(errorMessage);
   }
+
   const data = await res.json();
-  console.log("Admin employee created:", data); // لتتبع البيانات المستلمة بعد إنشاء الموظف الإداري
-  return data; // {id,name,username,role}
+  console.log("Admin employee created:", data);
+  return data;
 }
+
+
 
 export async function adminUpdateEmployee(
   id: string,

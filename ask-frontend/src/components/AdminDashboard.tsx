@@ -26,7 +26,7 @@ type UiStatus = 'pending' | 'in-progress' | 'released';
 type AdminEmployee = {
   id: string;
   name: string;
-  username: string;
+  email: string; // تغيير username إلى email
   isActive: boolean;
 };
 
@@ -79,17 +79,12 @@ export function AdminDashboard() {
   // Add employee modal
   const [showAddEmployee, setShowAddEmployee] = useState(false);
   const [empName, setEmpName] = useState('');
-  const [empUsername, setEmpUsername] = useState('');
+  const [empEmail, setEmpEmail] = useState(''); // تغيير username إلى email
   const [empPassword, setEmpPassword] = useState('');
   const [empSaving, setEmpSaving] = useState(false);
 
   const inProgressCount = useMemo(() => {
-    // backend dashboard doesn't return in-progress separately; we infer:
-    // pending includes NEW/ASSIGNED/IN_PROGRESS/REOPENED; so in-progress isn't isolated.
-    // UI القديم كان بيحسب in-progress من البيانات، هنا هنخليها 0 في الداشبورد cards؟
-    // الأفضل: نعرضها كـ (pending - NEW/ASSIGNED/REOPENED?) مش متاح.
-    // فهنحافظ على نفس البلوك لكن نحطه = 0 (أو نخليه pending؟).
-    return 0;
+    return 0; // في الـ UI القديم كان بيحسب in-progress من البيانات، هنا هنخليه 0 في الداشبورد cards؟
   }, []);
 
   const fetchDashboard = async () => {
@@ -104,7 +99,7 @@ export function AdminDashboard() {
       const emps: AdminEmployee[] = (d.employees || []).map((e: any) => ({
         id: e._id || e.id,
         name: e.name,
-username: e.username || e.email || '',
+        email: e.email || e.username || '', // التعامل مع الـ email بدلاً من username
         isActive: !!e.isActive,
       }));
       setEmployees(emps);
@@ -157,12 +152,10 @@ username: e.username || e.email || '',
 
   useEffect(() => {
     fetchDashboard();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   useEffect(() => {
     if (activeTab === 'requests') fetchInquiries(1);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [activeTab]);
 
   const getStatusBadge = (status: UiStatus) => {
@@ -211,53 +204,68 @@ username: e.username || e.email || '',
     }
   };
 
-  const handleAddEmployee = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setError('');
+const handleAddEmployee = async (e) => {
+  e.preventDefault();
+  setError(''); // Reset the error before proceeding.
 
-    if (!empName.trim() || !empUsername.trim() || !empPassword.trim()) {
-      setError('أدخل الاسم واسم المستخدم وكلمة المرور');
-      return;
-    }
-    if (empPassword.trim().length < 6) {
-      setError('كلمة المرور لازم تكون 6 أحرف أو أكثر');
-      return;
-    }
+  // Check if all fields are filled
+  if (!empName.trim() || !empEmail.trim() || !empPassword.trim()) {
+    setError('أدخل الاسم والبريد الإلكتروني وكلمة المرور');
+    return;
+  }
 
-    setEmpSaving(true);
-    try {
-      await adminCreateEmployee({
-        name: empName.trim(),
-        username: empUsername.trim(),
-        password: empPassword.trim(),
-      });
+  // Password validation
+  if (empPassword.trim().length < 6) {
+    setError('كلمة المرور لازم تكون 6 أحرف أو أكثر');
+    return;
+  }
 
-      setShowAddEmployee(false);
-      setEmpName('');
-      setEmpUsername('');
-      setEmpPassword('');
-      await fetchDashboard();
-    } catch (err: any) {
-      setError(err?.message || 'فشل إضافة الموظف');
-    } finally {
-      setEmpSaving(false);
-    }
-  };
-const normalizeMediaUrl = (url: string) => {
-  if (!url) return url;
-  return url.replace("http://localhost:8000", import.meta.env.VITE_API_BASE || "http://localhost:3000");
-};
-
-
-const playAudio = async (url: string) => {
+  setEmpSaving(true);
   try {
-    const audio = new Audio(normalizeMediaUrl(url));
-    await audio.play();
-  } catch (e) {
-    setError("المتصفح لم يستطع تشغيل الملف الصوتي (تأكد من الرابط/الصيغة).");
+    await adminCreateEmployee({
+      name: empName.trim(),
+      email: empEmail.trim(),
+      password: empPassword.trim(),
+      role: 'employee', // التأكد من إضافة role مع القيمة الصحيحة
+    });
+
+    setShowAddEmployee(false); // Close the modal after saving
+    setEmpName(''); // Reset fields
+    setEmpEmail('');
+    setEmpPassword('');
+
+    // Update dashboard after adding employee
+    await fetchDashboard();
+  } catch (err) {
+    setError(err?.message || 'فشل إضافة الموظف');
+  } finally {
+    setEmpSaving(false); // Reset saving state
   }
 };
 
+
+
+  const normalizeMediaUrl = (url: string) => {
+    if (!url) return url;
+
+    console.log('Original URL:', url);
+    const normalizedUrl = url.replace('http://localhost:8000', import.meta.env.VITE_API_BASE || 'http://localhost:3000');
+    console.log('Normalized URL:', normalizedUrl);
+    return normalizedUrl;
+  };
+
+  const playAudio = async (url: string) => {
+    try {
+      const normalizedUrl = normalizeMediaUrl(url);
+      console.log('Audio URL to be played:', normalizedUrl);
+
+      const audio = new Audio(normalizedUrl);
+      await audio.play();
+    } catch (e) {
+      console.log('Error playing audio:', e);
+      setError('المتصفح لم يستطع تشغيل الملف الصوتي (تأكد من الرابط/الصيغة).');
+    }
+  };
 
   const pagesCount = Math.max(Math.ceil(inqTotal / inqLimit), 1);
 
@@ -400,10 +408,10 @@ const playAudio = async (url: string) => {
                           <div>
                             <p className="font-medium text-gray-900">{employee.name}</p>
                             <p className="text-sm text-gray-500" dir="ltr">
-                              {employee.username}
+                              {employee.email}
                               {!employee.isActive && (
                                 <span className="ml-2 inline-block text-xs bg-red-100 text-red-700 px-2 py-0.5 rounded-full">
-                                  معطل
+                                  غير مفعل
                                 </span>
                               )}
                             </p>
@@ -469,13 +477,12 @@ const playAudio = async (url: string) => {
                           {employee.name}
                           {!employee.isActive && (
                             <span className="text-xs bg-red-100 text-red-700 px-2 py-0.5 rounded-full">
-                              معطل
                             </span>
                           )}
                         </p>
                         <div className="flex items-center gap-2 text-sm text-gray-500" dir="ltr">
                           <Mail className="w-4 h-4" />
-                          {employee.username}
+                          {employee.email}
                         </div>
                       </div>
                     </div>
@@ -765,12 +772,12 @@ const playAudio = async (url: string) => {
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-900 mb-2">اسم المستخدم (username)</label>
+                <label className="block text-sm font-medium text-gray-900 mb-2">البريد الإلكتروني</label>
                 <input
-                  value={empUsername}
-                  onChange={(e) => setEmpUsername(e.target.value)}
+                  value={empEmail}
+                  onChange={(e) => setEmpEmail(e.target.value)}
                   className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
-                  placeholder="employee1"
+                  placeholder="example@domain.com"
                   dir="ltr"
                 />
               </div>

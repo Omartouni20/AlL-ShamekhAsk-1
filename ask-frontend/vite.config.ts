@@ -12,7 +12,6 @@ export default defineConfig({
         __dirname,
         './src/assets/9dd806c39decc1e8553ad45cfbf0fe091377c9df.png'
       ),
-
       // alias الأساسي
       '@': path.resolve(__dirname, './src'),
     },
@@ -21,13 +20,14 @@ export default defineConfig({
     target: 'esnext',
     outDir: 'build',
   },
-server: {
-  port: 3000,
-  open: true,
-  proxy: {
-    "/api": "http://localhost:5000",
-    "/uploads": "http://localhost:5000",
-    "/health": "http://localhost:5000"
-  }
-},
+  server: {
+    port: 3000,
+    open: true,
+    proxy: {
+      // استخدم المتغير البيئي هنا لتحديد السيرفر
+      '/api': `${import.meta.env.VITE_API_BASE}`,
+      '/uploads': `${import.meta.env.VITE_UPLOADS_BASE}`,
+      '/health': `${import.meta.env.VITE_API_BASE}`,
+    },
+  },
 });
