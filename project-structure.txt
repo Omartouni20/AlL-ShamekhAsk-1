@@ -1,0 +1,119 @@
+===== BACKEND =====
+Folder PATH listing
+Volume serial number is 00000098 1C85:E98D
+F:\DOWNLOADES\ASK\ASK-BACKEND\SRC
+|   .env
+|   .gitignore
+|   app.js
+|   server.js
+|   
++---config
+|       db.js
+|       
++---controllers
+|       admin.controller.js
+|       auth.controller.js
+|       inquiry.controller.js
+|       
++---middleware
+|       auth.js
+|       rateLimit.js
+|       role.js
+|       upload.js
+|       
++---models
+|       Inquiry.js
+|       User.js
+|       
++---routes
+|       admin.routes.js
+|       auth.routes.js
+|       inquiry.routes.js
+|       
++---uploads
+\---utils
+        assignInquiry.js
+        
+
+===== FRONTEND =====
+Folder PATH listing
+Volume serial number is 000000AB 1C85:E98D
+F:\DOWNLOADES\ASK\ASK-FRONTEND\SRC
+|   api.ts
+|   App.tsx
+|   Attributions.md
+|   index.css
+|   main.tsx
+|   
++---assets
+|       9dd806c39decc1e8553ad45cfbf0fe091377c9df.png
+|       
++---components
+|   |   AdminDashboard.tsx
+|   |   AdminLogin.tsx
+|   |   CustomerPage.tsx
+|   |   EmployeeDashboard.tsx
+|   |   EmployeeLogin.tsx
+|   |   
+|   +---figma
+|   |       ImageWithFallback.tsx
+|   |       
+|   \---ui
+|           accordion.tsx
+|           alert-dialog.tsx
+|           alert.tsx
+|           aspect-ratio.tsx
+|           avatar.tsx
+|           badge.tsx
+|           breadcrumb.tsx
+|           button.tsx
+|           calendar.tsx
+|           card.tsx
+|           carousel.tsx
+|           chart.tsx
+|           checkbox.tsx
+|           collapsible.tsx
+|           command.tsx
+|           context-menu.tsx
+|           dialog.tsx
+|           drawer.tsx
+|           dropdown-menu.tsx
+|           form.tsx
+|           hover-card.tsx
+|           input-otp.tsx
+|           input.tsx
+|           label.tsx
+|           menubar.tsx
+|           navigation-menu.tsx
+|           pagination.tsx
+|           popover.tsx
+|           progress.tsx
+|           radio-group.tsx
+|           resizable.tsx
+|           scroll-area.tsx
+|           select.tsx
+|           separator.tsx
+|           sheet.tsx
+|           sidebar.tsx
+|           skeleton.tsx
+|           slider.tsx
+|           sonner.tsx
+|           switch.tsx
+|           table.tsx
+|           tabs.tsx
+|           textarea.tsx
+|           toggle-group.tsx
+|           toggle.tsx
+|           tooltip.tsx
+|           use-mobile.ts
+|           utils.ts
+|           
++---data
+|       mockData.ts
+|       
++---guidelines
+|       Guidelines.md
+|       
+\---styles
+        globals.css
+        

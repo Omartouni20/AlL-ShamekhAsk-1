@@ -1,0 +1,144 @@
+const API_BASE = "const API_BASE = process.env.API_BASE || "http://localhost:3000";";
+
+function getToken() {
+  return localStorage.getItem("token") || "";
+}
+
+async function readError(res: Response) {
+  const text = await res.text();
+  try {
+    const j = JSON.parse(text);
+    return j?.message || text || "Request failed";
+  } catch {
+    return text || "Request failed";
+  }
+}
+
+export async function apiLogin(username: string, password: string) {
+  const res = await fetch(`${API_BASE}/api/auth/login`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ username, password }),
+  });
+
+  if (!res.ok) throw new Error(await readError(res));
+  return res.json(); // {token, user}
+}
+
+export async function submitInquiry(payload: { phone: string; text?: string; voiceFile?: File }) {
+  const fd = new FormData();
+  fd.append("phone", payload.phone);
+  if (payload.text) fd.append("text", payload.text);
+  if (payload.voiceFile) fd.append("voice", payload.voiceFile);
+
+  const res = await fetch(`${API_BASE}/api/public/inquiries`, {
+    method: "POST",
+    body: fd,
+  });
+
+  if (!res.ok) throw new Error(await readError(res));
+  return res.json(); // {inquiryId, status}
+}
+
+export async function getMyInquiries() {
+  const token = getToken();
+  const res = await fetch(`${API_BASE}/api/employee/inquiries`, {
+    headers: { Authorization: `Bearer ${token}` },
+  });
+
+  if (!res.ok) throw new Error(await readError(res));
+  return res.json(); // {items: [...]}
+}
+
+export async function startProgress(id: string) {
+  const token = getToken();
+  const res = await fetch(`${API_BASE}/api/employee/inquiries/${id}/in-progress`, {
+    method: "PATCH",
+    headers: { Authorization: `Bearer ${token}` },
+  });
+
+  if (!res.ok) throw new Error(await readError(res));
+  return res.json();
+}
+
+export async function releaseInquiry(id: string, proofImage: File, note?: string) {
+  const token = getToken();
+  const fd = new FormData();
+  fd.append("proofImage", proofImage);
+  if (note) fd.append("note", note);
+
+  const res = await fetch(`${API_BASE}/api/employee/inquiries/${id}/release`, {
+    method: "POST",
+    headers: { Authorization: `Bearer ${token}` },
+    body: fd,
+  });
+
+  if (!res.ok) throw new Error(await readError(res));
+  return res.json();
+}
+
+// -------------------------
+// ✅ ADMIN APIs
+// -------------------------
+
+export async function adminDashboard() {
+  const token = getToken();
+  const res = await fetch(`${API_BASE}/api/admin/dashboard`, {
+    headers: { Authorization: `Bearer ${token}` },
+  });
+  if (!res.ok) throw new Error(await readError(res));
+  return res.json(); // {total,pending,released,employees,perEmployee}
+}
+
+export async function adminListInquiries(params?: {
+  status?: string;
+  q?: string;
+  page?: number;
+  limit?: number;
+}) {
+  const token = getToken();
+  const qs = new URLSearchParams();
+  if (params?.status) qs.set("status", params.status);
+  if (params?.q) qs.set("q", params.q);
+  if (params?.page) qs.set("page", String(params.page));
+  if (params?.limit) qs.set("limit", String(params.limit));
+
+  const res = await fetch(`${API_BASE}/api/admin/inquiries?${qs.toString()}`, {
+    headers: { Authorization: `Bearer ${token}` },
+  });
+  if (!res.ok) throw new Error(await readError(res));
+  return res.json(); // {items,total,page,limit}
+}
+
+export async function adminCreateEmployee(payload: { name: string; username: string; password: string }) {
+  const token = getToken();
+  const res = await fetch(`${API_BASE}/api/admin/employees`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${token}`,
+    },
+    body: JSON.stringify(payload),
+  });
+
+  if (!res.ok) throw new Error(await readError(res));
+  return res.json(); // {id,name,username,role}
+}
+
+export async function adminUpdateEmployee(
+  id: string,
+  payload: { name?: string; isActive?: boolean; password?: string }
+) {
+  const token = getToken();
+  const res = await fetch(`${API_BASE}/api/admin/employees/${id}`, {
+    method: "PATCH",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${token}`,
+    },
+    body: JSON.stringify(payload),
+  });
+
+  if (!res.ok) throw new Error(await readError(res));
+  return res.json(); // {ok:true}
+}
